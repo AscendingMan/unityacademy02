@@ -26,7 +26,7 @@ public class RenderingSystem : ISystemInterface
 			var scale = 2.0f * Vector2.one;
 
 			if (entities.flags[i].HasFlag(EntityFlags.kFlagCollision))
-				scale *= entities.collisionComponents[i].radius;
+				scale *= entities.collisionComponents[i].yLength;
 		
 			mtrx.SetTRS(pos, Quaternion.Euler(Vector3.zero), scale);
 		

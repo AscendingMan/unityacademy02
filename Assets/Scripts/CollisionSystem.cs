@@ -22,7 +22,11 @@ public class CollisionSystem : ISystemInterface
                 var collisionComponent = new CollisionComponent();
 
                 if (entities.forceComponents[i].massInverse > 1e-6f)
+                {
+                    collisionComponent.yLength = 1.0f / entities.forceComponents[i].massInverse;
+                    collisionComponent.xLength = 1.0f / entities.forceComponents[i].massInverse;
                     collisionComponent.radius = 1.0f / entities.forceComponents[i].massInverse;
+                }
 
                 collisionComponent.coeffOfRestitution = Random.Range(0.1f, 0.9f);
 
@@ -38,8 +42,34 @@ public class CollisionSystem : ISystemInterface
         return (pos2 - pos1).sqrMagnitude <= (r2 + r1) * (r2 + r1);
     }
 
+
+    int TestAABBAABB(Entities e, int index1, int index2)
+    {
+        if(e.positions[index1].x + (e.collisionComponents[index1].xLength/2) < 
+            e.positions[index2].x - (e.collisionComponents[index2].xLength / 2)  || 
+            e.positions[index2].x + (e.collisionComponents[index2].xLength / 2) <
+            e.positions[index1].x - (e.collisionComponents[index1].xLength / 2))
+        {
+            //Debug.Log("nope");
+            return 0;
+        }
+        if (e.positions[index1].y + (e.collisionComponents[index1].yLength / 2) <
+            e.positions[index2].y - (e.collisionComponents[index2].yLength / 2) ||
+            e.positions[index2].y + (e.collisionComponents[index2].yLength / 2) <
+            e.positions[index1].y - (e.collisionComponents[index1].yLength / 2))
+        {
+            //Debug.Log("nope");
+            return 0;
+        }
+
+        // Overlapping on all axes means AABBs are intersecting
+        Debug.Log("Collision");
+
+        return 1;
+    }
+
     // Impulse resolution inspired by:
-    // https://gamedevelopment.tutsplus.com/tutorials/how-to-create-a-custom-2d-physics-engine-the-basics-and-impulse-resolution--gamedev-6331
+    /* https://gamedevelopment.tutsplus.com/tutorials/how-to-create-a-custom-2d-physics-engine-the-basics-and-impulse-resolution--gamedev-6331 */
     public void Update(World world, float time = 0, float deltaTime = 0)
     {
         var entities = world.entities;
@@ -49,13 +79,14 @@ public class CollisionSystem : ISystemInterface
         {            
             velocityCache[i] = entities.moveComponents[i].velocity;
         }
-        
+
+
         for (var i = 0; i < entities.flags.Count; i++)
         {
             // Check all pairs only once
             for (var j = i + 1; j < entities.flags.Count; j++)
             {
-                if (entities.flags[i].HasFlag(EntityFlags.kFlagCollision) && 
+                if (entities.flags[i].HasFlag(EntityFlags.kFlagCollision) &&
                     entities.flags[j].HasFlag(EntityFlags.kFlagCollision))
                 {
                     var col1 = entities.collisionComponents[i];
@@ -64,39 +95,41 @@ public class CollisionSystem : ISystemInterface
                     var pos1 = entities.positions[i];
                     var pos2 = entities.positions[j];
 
-                    if (CirclesCollide(pos1, col1.radius, pos2, col2.radius))
-                    {
-                        var move1 = entities.moveComponents[i];
-                        var move2 = entities.moveComponents[j];
+                    TestAABBAABB(entities, i, j);
 
-                        // Relative velocity
-                        Vector2 relVel = move2.velocity - move1.velocity;
-                        // Collision normal
-                        Vector2 normal = (pos2 - pos1).normalized;
+                    //if (CirclesCollide(pos1, col1.radius, pos2, col2.radius))
+                    //{
+                    //    var move1 = entities.moveComponents[i];
+                    //    var move2 = entities.moveComponents[j];
 
-                        float velocityProjection = Vector2.Dot(relVel, normal);
+                    //    Relative velocity
+                    //    Vector2 relVel = move2.velocity - move1.velocity;
+                    //    Collision normal
+                    //    Vector2 normal = (pos2 - pos1).normalized;
 
-                        // Process only if objects are not separating
-                        if (velocityProjection < 0)
-                        {
-                            var force1 = entities.forceComponents[i];
-                            var force2 = entities.forceComponents[j];
-                            
-                            float cr = Mathf.Min(col1.coeffOfRestitution, col2.coeffOfRestitution);
-                            
-                            // Impulse scale
-                            float impScale = -(1f + cr) * velocityProjection /
-                                             (force1.massInverse + force2.massInverse);
+                    //    float velocityProjection = Vector2.Dot(relVel, normal);
 
-                            Vector2 impulse = impScale * normal;
+                    //    Process only if objects are not separating
+                    //    if (velocityProjection < 0)
+                    //    {
+                    //        var force1 = entities.forceComponents[i];
+                    //        var force2 = entities.forceComponents[j];
 
-                            velocityCache[i] -= force1.massInverse * impulse;
-                            velocityCache[j] += force2.massInverse * impulse;
-                        }        
-                    }
+                    //        float cr = Mathf.Min(col1.coeffOfRestitution, col2.coeffOfRestitution);
+
+                    //        Impulse scale
+                    //        float impScale = -(1f + cr) * velocityProjection /
+                    //                         (force1.massInverse + force2.massInverse);
+
+                    //        Vector2 impulse = impScale * normal;
+
+                    //        velocityCache[i] -= force1.massInverse * impulse;
+                    //        velocityCache[j] += force2.massInverse * impulse;
+                    //    }
+                    //}
                 }
             }
-            
+
         }
 
         // Apply cached velocities

@@ -39,8 +39,10 @@ public struct ForceComponent
 
 public struct CollisionComponent
 {
-	public float radius;
+    public float yLength;
+    public float xLength;
 	public float coeffOfRestitution;
+    public float radius; //leave it be for now, this is actually size of an edge
 }
 
 public class Entities
@@ -82,4 +84,25 @@ public class Entities
 			AddEntity(new Vector2(Random.Range(-7.5f, 7.5f), Random.Range(-4f, 4f)));
 		}
 	}
+
+    public float Ax(int _id)
+    {
+        return positions[_id].x - collisionComponents[_id].radius;
+    }
+
+    public float Ay(int _id)
+    {
+        return positions[_id].y + collisionComponents[_id].radius;
+    }
+    
+
+    public float AX(int _id)
+    {
+        return positions[_id].x + collisionComponents[_id].radius;
+    }
+
+    public float AY(int _id)
+    {
+        return positions[_id].y - collisionComponents[_id].radius;
+    }
 }
