@@ -219,7 +219,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   templateObject: {fileID: 1841618383888084, guid: bb5ac65117b73439fb73e9e30ea956d2,
     type: 2}
-  entityCount: 2
+  entityCount: 100
   worldBounds:
     serializedVersion: 2
     x: -10
