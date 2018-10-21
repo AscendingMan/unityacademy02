@@ -18,7 +18,7 @@ I used some resources to make life easier for me here:
 
 ---
 Appended readme starts here
-#An attempt to implement AABB collisions in the given mini-physics engine
+# An attempt to implement AABB collisions in the given mini-physics engine
 
 First, I added separate edge lenghts for x and y to entities
 ```cpp
